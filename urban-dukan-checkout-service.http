@@ -1,0 +1,6 @@
+@urban_dukan_checkout_service_HostAddress = http://localhost:5177
+
+GET {{urban_dukan_checkout_service_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
