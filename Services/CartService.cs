@@ -60,7 +60,7 @@ namespace urban_dukan_checkout_service.Services
             await _cartRepository.SaveCartAsync(cart, ct);
         }
 
-        public async Task RemoveItemAsync(Guid userId, Guid productId, CancellationToken ct = default)
+        public async Task RemoveItemAsync(Guid userId, int productId, CancellationToken ct = default)
         {
             var cart = await _cartRepository.GetCartAsync(userId, ct);
             if (cart == null) return;

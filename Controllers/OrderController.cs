@@ -1,6 +1,7 @@
-using System;
+using System;   
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using urban_dukan_checkout_service.DTOs;
@@ -10,6 +11,7 @@ namespace urban_dukan_checkout_service.Controllers
 {
     [ApiController]
     [Route("api/orders")]
+    [Authorize]
     public class OrderController : ControllerBase
     {
         private readonly IOrderService _svc;
@@ -22,9 +24,10 @@ namespace urban_dukan_checkout_service.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateOrder([FromQuery] Guid userId, CancellationToken ct)
+        public async Task<IActionResult> CreateOrder(CancellationToken ct)
         {
-            if (userId == Guid.Empty) return BadRequest("userId is required");
+            if (!TryGetUserId(out var userId) || userId == Guid.Empty) return Unauthorized();
+
             try
             {
                 var res = await _svc.CreateOrderAsync(userId, ct);
@@ -42,6 +45,7 @@ namespace urban_dukan_checkout_service.Controllers
         }
 
         [HttpGet("{id:guid}")]
+        [AllowAnonymous] // keep read access publicly if desired; adjust as needed
         public async Task<IActionResult> GetOrderById(Guid id, CancellationToken ct)
         {
             var order = await _svc.GetOrderByIdAsync(id, ct);
@@ -49,11 +53,21 @@ namespace urban_dukan_checkout_service.Controllers
             return Ok(order);
         }
 
-        [HttpGet("user/{userId:guid}")]
-        public async Task<IActionResult> GetOrdersByUser(Guid userId, CancellationToken ct)
+        // returns orders for the authenticated user
+        [HttpGet("me")]
+        public async Task<IActionResult> GetOrdersByUser(CancellationToken ct)
         {
+            if (!TryGetUserId(out var userId) || userId == Guid.Empty) return Unauthorized();
             var orders = await _svc.GetOrdersByUserAsync(userId, ct);
             return Ok(orders);
+        }
+
+        private bool TryGetUserId(out Guid userId)
+        {
+            userId = Guid.Empty;
+            var claim = User.FindFirst("sub") ?? User.FindFirst("user_id") ?? User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+            if (claim == null) return false;
+            return Guid.TryParse(claim.Value, out userId);
         }
     }
 }

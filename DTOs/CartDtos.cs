@@ -6,11 +6,11 @@ namespace urban_dukan_checkout_service.DTOs
 {
     public class AddCartItemRequest
     {
-        [Required]
+        // UserId is now set server-side from the token; remove client-required validation.
         public Guid UserId { get; set; }
 
         [Required]
-        public Guid ProductId { get; set; }
+        public int ProductId { get; set; }
 
         [Range(1, int.MaxValue)]
         public int Quantity { get; set; } = 1;
@@ -18,19 +18,29 @@ namespace urban_dukan_checkout_service.DTOs
 
     public class UpdateCartItemRequest
     {
-        [Required]
+        // UserId is now set server-side from the token; remove client-required validation.
         public Guid UserId { get; set; }
 
         [Required]
-        public Guid ProductId { get; set; }
+        public int ProductId { get; set; }
 
         [Range(1, int.MaxValue)]
         public int Quantity { get; set; }
     }
 
+    // DTO for Buy Now action (UI sends product + quantity)
+    public class BuyNowRequest
+    {
+        [Required]
+        public int ProductId { get; set; }
+
+        [Range(1, int.MaxValue)]
+        public int Quantity { get; set; } = 1;
+    }
+
     public class CartItemDto
     {
-        public Guid ProductId { get; set; }
+        public int ProductId { get; set; }
         public int Quantity { get; set; }
     }
 

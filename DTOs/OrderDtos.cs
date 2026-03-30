@@ -10,7 +10,7 @@ namespace urban_dukan_checkout_service.DTOs
 
     public class OrderItemDto
     {
-        public Guid ProductId { get; set; }
+        public int ProductId { get; set; }
         public string ProductName { get; set; } = "";
         public decimal PriceAtPurchase { get; set; }
         public int Quantity { get; set; }

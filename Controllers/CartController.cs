@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using urban_dukan_checkout_service.DTOs;
@@ -10,6 +11,7 @@ namespace urban_dukan_checkout_service.Controllers
 {
     [ApiController]
     [Route("api/cart")]
+    [Authorize]
     public class CartController : ControllerBase
     {
         private readonly ICartService _service;
@@ -22,9 +24,9 @@ namespace urban_dukan_checkout_service.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetCart([FromQuery] Guid userId, CancellationToken ct)
+        public async Task<IActionResult> GetCart(CancellationToken ct)
         {
-            if (userId == Guid.Empty) return BadRequest("userId is required");
+            if (!TryGetUserId(out var userId) || userId == Guid.Empty) return Unauthorized();
             var cart = await _service.GetCartAsync(userId, ct);
             return Ok(cart);
         }
@@ -32,6 +34,11 @@ namespace urban_dukan_checkout_service.Controllers
         [HttpPost("items")]
         public async Task<IActionResult> AddItem([FromBody] AddCartItemRequest request, CancellationToken ct)
         {
+            if (!TryGetUserId(out var userId) || userId == Guid.Empty) return Unauthorized();
+
+            // set user from token (frontend no longer provides it)
+            request.UserId = userId;
+
             if (!ModelState.IsValid) return BadRequest(ModelState);
             try
             {
@@ -48,6 +55,10 @@ namespace urban_dukan_checkout_service.Controllers
         [HttpPut("items")]
         public async Task<IActionResult> UpdateItem([FromBody] UpdateCartItemRequest request, CancellationToken ct)
         {
+            if (!TryGetUserId(out var userId) || userId == Guid.Empty) return Unauthorized();
+
+            request.UserId = userId;
+
             if (!ModelState.IsValid) return BadRequest(ModelState);
             try
             {
@@ -65,20 +76,31 @@ namespace urban_dukan_checkout_service.Controllers
             }
         }
 
-        [HttpDelete("items/{productId:guid}")]
-        public async Task<IActionResult> DeleteItem([FromQuery] Guid userId, Guid productId, CancellationToken ct)
+        // productId is an integer
+        [HttpDelete("items/{productId:int}")]
+        public async Task<IActionResult> DeleteItem(int productId, CancellationToken ct)
         {
-            if (userId == Guid.Empty) return BadRequest("userId is required");
+            if (!TryGetUserId(out var userId) || userId == Guid.Empty) return Unauthorized();
+
             await _service.RemoveItemAsync(userId, productId, ct);
             return NoContent();
         }
 
         [HttpDelete]
-        public async Task<IActionResult> ClearCart([FromQuery] Guid userId, CancellationToken ct)
+        public async Task<IActionResult> ClearCart(CancellationToken ct)
         {
-            if (userId == Guid.Empty) return BadRequest("userId is required");
+            if (!TryGetUserId(out var userId) || userId == Guid.Empty) return Unauthorized();
+
             await _service.ClearCartAsync(userId, ct);
             return NoContent();
+        }
+
+        private bool TryGetUserId(out Guid userId)
+        {
+            userId = Guid.Empty;
+            var claim = User.FindFirst("sub") ?? User.FindFirst("user_id") ?? User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+            if (claim == null) return false;
+            return Guid.TryParse(claim.Value, out userId);
         }
     }
 }

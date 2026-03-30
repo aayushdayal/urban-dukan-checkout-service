@@ -20,7 +20,7 @@ namespace urban_dukan_checkout_service.Clients
             _logger = logger;
         }
 
-        public async Task<Dictionary<Guid, ProductInfo>> GetProductsAsync(IEnumerable<Guid> productIds, CancellationToken ct = default)
+        public async Task<Dictionary<int, ProductInfo>> GetProductsAsync(IEnumerable<int> productIds, CancellationToken ct = default)
         {
             var ids = productIds.Distinct().ToArray();
             var tasks = ids.Select(id => GetProductSingleAsync(id, ct)).ToArray();
@@ -29,7 +29,7 @@ namespace urban_dukan_checkout_service.Clients
             return results.ToDictionary(r => r.ProductId);
         }
 
-        private async Task<ProductInfo> GetProductSingleAsync(Guid id, CancellationToken ct)
+        private async Task<ProductInfo> GetProductSingleAsync(int id, CancellationToken ct)
         {
             // Adjust path as per Product Service API. This assumes GET /api/products/{id}
             var url = $"api/products/{id}";

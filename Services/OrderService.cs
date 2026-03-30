@@ -85,6 +85,50 @@ namespace urban_dukan_checkout_service.Services
             return new CreateOrderResponse { OrderId = created.Id };
         }
 
+        // New: Create order directly for a single product without persisting to cart
+        public async Task<CreateOrderResponse> CreateOrderForSingleItemAsync(Guid userId, int productId, int quantity, CancellationToken ct = default)
+        {
+            if (userId == Guid.Empty) throw new ArgumentException("userId required");
+            if (quantity <= 0) throw new ArgumentException("quantity must be > 0");
+
+            // Fetch product
+            var products = await _productClient.GetProductsAsync(new[] { productId }, ct);
+            if (!products.TryGetValue(productId, out var prod))
+            {
+                throw new InvalidOperationException($"Product {productId} not found");
+            }
+
+            if (prod.Stock < quantity)
+            {
+                throw new InvalidOperationException($"Product {prod.ProductId} stock insufficient");
+            }
+
+            var order = new Order
+            {
+                Id = Guid.NewGuid(),
+                UserId = userId,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            var oi = new OrderItem
+            {
+                Id = Guid.NewGuid(),
+                OrderId = order.Id,
+                ProductId = prod.ProductId,
+                ProductName = prod.Name,
+                PriceAtPurchase = prod.Price,
+                Quantity = quantity
+            };
+            order.Items.Add(oi);
+
+            order.Total = order.Items.Sum(i => i.PriceAtPurchase * i.Quantity);
+
+            // Persist order (do NOT touch cart)
+            var created = await _orderRepo.CreateOrderAsync(order, ct);
+
+            return new CreateOrderResponse { OrderId = created.Id };
+        }
+
         public async Task<OrderResponse?> GetOrderByIdAsync(Guid id, CancellationToken ct = default)
         {
             var o = await _orderRepo.GetByIdAsync(id, ct);

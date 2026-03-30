@@ -12,7 +12,7 @@ namespace urban_dukan_checkout_service.Models
         [ForeignKey(nameof(Order))]
         public Guid OrderId { get; set; }
 
-        public Guid ProductId { get; set; }
+        public int ProductId { get; set; }
 
         public string ProductName { get; set; } = "";
 
