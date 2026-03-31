@@ -26,7 +26,7 @@ namespace urban_dukan_checkout_service.Clients
             var tasks = ids.Select(id => GetProductSingleAsync(id, ct)).ToArray();
             var results = await Task.WhenAll(tasks);
 
-            return results.ToDictionary(r => r.ProductId);
+            return results.ToDictionary(r => r.id);
         }
 
         private async Task<ProductInfo> GetProductSingleAsync(int id, CancellationToken ct)

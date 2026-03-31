@@ -31,7 +31,7 @@ namespace urban_dukan_checkout_service.Repositories
                 .FirstOrDefaultAsync(o => o.Id == id, ct);
         }
 
-        public async Task<Order[]> GetByUserAsync(Guid userId, CancellationToken ct = default)
+        public async Task<Order[]> GetByUserAsync(int userId, CancellationToken ct = default)
         {
             return await _db.Orders
                 .Include(o => o.Items)

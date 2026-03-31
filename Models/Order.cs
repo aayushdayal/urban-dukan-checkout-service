@@ -9,7 +9,7 @@ namespace urban_dukan_checkout_service.Models
         [Key]
         public Guid Id { get; set; }
 
-        public Guid UserId { get; set; }
+        public int UserId { get; set; }
 
         public DateTime CreatedAt { get; set; }
 

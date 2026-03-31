@@ -7,10 +7,10 @@ namespace urban_dukan_checkout_service.Services
 {
     public interface IOrderService
     {
-        Task<CreateOrderResponse> CreateOrderAsync(Guid userId, CancellationToken ct = default);
+        Task<CreateOrderResponse> CreateOrderAsync(int userId, CancellationToken ct = default);
         Task<OrderResponse?> GetOrderByIdAsync(Guid id, CancellationToken ct = default);
-        Task<OrderResponse[]> GetOrdersByUserAsync(Guid userId, CancellationToken ct = default);
+        Task<OrderResponse[]> GetOrdersByUserAsync(int userId, CancellationToken ct = default);
 
-        Task<CreateOrderResponse> CreateOrderForSingleItemAsync(Guid userId, int productId, int quantity, CancellationToken ct = default);
+        Task<CreateOrderResponse> CreateOrderForSingleItemAsync(int userId, int productId, int quantity, CancellationToken ct = default);
     }
 }

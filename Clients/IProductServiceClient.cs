@@ -7,8 +7,8 @@ namespace urban_dukan_checkout_service.Clients
 {
     public class ProductInfo
     {
-        public int ProductId { get; set; }
-        public string Name { get; set; } = "";
+        public int id { get; set; }
+        public string Title { get; set; } = "";
         public decimal Price { get; set; }
         public int Stock { get; set; }
     }

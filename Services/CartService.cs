@@ -20,7 +20,7 @@ namespace urban_dukan_checkout_service.Services
             _logger = logger;
         }
 
-        public async Task<CartResponse?> GetCartAsync(Guid userId, CancellationToken ct = default)
+        public async Task<CartResponse?> GetCartAsync(int userId, CancellationToken ct = default)
         {
             var cart = await _cartRepository.GetCartAsync(userId, ct);
             if (cart == null) return new CartResponse { UserId = userId };
@@ -60,7 +60,7 @@ namespace urban_dukan_checkout_service.Services
             await _cartRepository.SaveCartAsync(cart, ct);
         }
 
-        public async Task RemoveItemAsync(Guid userId, int productId, CancellationToken ct = default)
+        public async Task RemoveItemAsync(int userId, int productId, CancellationToken ct = default)
         {
             var cart = await _cartRepository.GetCartAsync(userId, ct);
             if (cart == null) return;
@@ -68,7 +68,7 @@ namespace urban_dukan_checkout_service.Services
             await _cartRepository.SaveCartAsync(cart, ct);
         }
 
-        public async Task ClearCartAsync(Guid userId, CancellationToken ct = default)
+        public async Task ClearCartAsync(int userId, CancellationToken ct = default)
         {
             await _cartRepository.DeleteCartAsync(userId, ct);
         }

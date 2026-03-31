@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.SqlServer; // Optional, but sometimes needed for intellisense
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
+using System.IdentityModel.Tokens.Jwt;
 using StackExchange.Redis;
 using urban_dukan_checkout_service.Clients;
 using urban_dukan_checkout_service.Configurations;
@@ -12,6 +14,9 @@ using urban_dukan_checkout_service.Repositories;
 using urban_dukan_checkout_service.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Clear default claim mapping so "sub" remains "sub"
+JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
 
 // Configuration
 builder.Services.Configure<RedisSettings>(builder.Configuration.GetSection("Redis"));
@@ -23,9 +28,31 @@ builder.Services.AddControllers().AddJsonOptions(options =>
     options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
 });
 
-// Swagger
+// Swagger - add JWT support
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Description = "JWT Authorization header using the Bearer scheme. Enter: 'Bearer {token}'",
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT"
+    });
+
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" }
+            },
+            new string[] { }
+        }
+    });
+});
 
 // DbContext - Orders only
 builder.Services.AddDbContext<OrdersDbContext>(options =>
@@ -83,7 +110,8 @@ builder.Services.AddAuthentication(options =>
 })
 .AddJwtBearer(options =>
 {
-    options.RequireHttpsMetadata = true;
+    // Allow non-HTTPS in Development for local testing (switch to true in production)
+    options.RequireHttpsMetadata = !builder.Environment.IsDevelopment() ? true : false;
     options.SaveToken = true;
     options.TokenValidationParameters = new TokenValidationParameters
     {
@@ -94,7 +122,7 @@ builder.Services.AddAuthentication(options =>
         ValidateIssuerSigningKey = true,
         IssuerSigningKey = signingKey,
         ValidateLifetime = true,
-        ClockSkew = TimeSpan.FromSeconds(60)
+        ClockSkew = TimeSpan.FromMinutes(5)
     };
 });
 

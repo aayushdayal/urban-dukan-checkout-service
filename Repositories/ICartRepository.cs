@@ -7,8 +7,8 @@ namespace urban_dukan_checkout_service.Repositories
 {
     public interface ICartRepository
     {
-        Task<Cart?> GetCartAsync(Guid userId, CancellationToken ct = default);
+        Task<Cart?> GetCartAsync(int userId, CancellationToken ct = default);
         Task SaveCartAsync(Cart cart, CancellationToken ct = default);
-        Task DeleteCartAsync(Guid userId, CancellationToken ct = default);
+        Task DeleteCartAsync(int userId, CancellationToken ct = default);
     }
 }

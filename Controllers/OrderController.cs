@@ -26,7 +26,7 @@ namespace urban_dukan_checkout_service.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateOrder(CancellationToken ct)
         {
-            if (!TryGetUserId(out var userId) || userId == Guid.Empty) return Unauthorized();
+            if (!TryGetUserId(out var userId) || userId == 0) return Unauthorized();
 
             try
             {
@@ -44,6 +44,30 @@ namespace urban_dukan_checkout_service.Controllers
             }
         }
 
+        // New: Buy now — create an order directly for a single product without touching the cart
+        [HttpPost("buynow")]
+        public async Task<IActionResult> BuyNow([FromBody] BuyNowRequest request, CancellationToken ct)
+        {
+            if (!TryGetUserId(out var userId) || userId == 0) return Unauthorized();
+
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
+            try
+            {
+                var res = await _svc.CreateOrderForSingleItemAsync(userId, request.ProductId, request.Quantity, ct);
+                return CreatedAtAction(nameof(GetOrderById), new { id = res.OrderId }, res);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to create buy-now order");
+                return Problem("Failed to create order");
+            }
+        }
+
         [HttpGet("{id:guid}")]
         [AllowAnonymous] // keep read access publicly if desired; adjust as needed
         public async Task<IActionResult> GetOrderById(Guid id, CancellationToken ct)
@@ -57,17 +81,17 @@ namespace urban_dukan_checkout_service.Controllers
         [HttpGet("me")]
         public async Task<IActionResult> GetOrdersByUser(CancellationToken ct)
         {
-            if (!TryGetUserId(out var userId) || userId == Guid.Empty) return Unauthorized();
+            if (!TryGetUserId(out var userId) || userId == 0) return Unauthorized();
             var orders = await _svc.GetOrdersByUserAsync(userId, ct);
             return Ok(orders);
         }
 
-        private bool TryGetUserId(out Guid userId)
+        private bool TryGetUserId(out int userId)
         {
-            userId = Guid.Empty;
+            userId = 0;
             var claim = User.FindFirst("sub") ?? User.FindFirst("user_id") ?? User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
             if (claim == null) return false;
-            return Guid.TryParse(claim.Value, out userId);
+            return int.TryParse(claim.Value, out userId);
         }
     }
 }

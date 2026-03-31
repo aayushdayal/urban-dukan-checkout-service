@@ -31,9 +31,9 @@ namespace urban_dukan_checkout_service.Services
             _logger = logger;
         }
 
-        public async Task<CreateOrderResponse> CreateOrderAsync(Guid userId, CancellationToken ct = default)
+        public async Task<CreateOrderResponse> CreateOrderAsync(int userId, CancellationToken ct = default)
         {
-            if (userId == Guid.Empty) throw new ArgumentException("userId required");
+            if (userId <= 0) throw new ArgumentException("userId required");
 
             var cart = await _cartRepo.GetCartAsync(userId, ct);
             if (cart == null || !cart.Items.Any()) throw new InvalidOperationException("Cart is empty");
@@ -59,15 +59,15 @@ namespace urban_dukan_checkout_service.Services
 
                 if (prod.Stock < cartItem.Quantity)
                 {
-                    throw new InvalidOperationException($"Product {prod.ProductId} stock insufficient");
+                    throw new InvalidOperationException($"Product {prod.id} stock insufficient");
                 }
 
                 var oi = new OrderItem
                 {
                     Id = Guid.NewGuid(),
                     OrderId = order.Id,
-                    ProductId = prod.ProductId,
-                    ProductName = prod.Name,
+                    ProductId = prod.id,
+                    ProductName = prod.Title,
                     PriceAtPurchase = prod.Price,
                     Quantity = cartItem.Quantity
                 };
@@ -86,9 +86,9 @@ namespace urban_dukan_checkout_service.Services
         }
 
         // New: Create order directly for a single product without persisting to cart
-        public async Task<CreateOrderResponse> CreateOrderForSingleItemAsync(Guid userId, int productId, int quantity, CancellationToken ct = default)
+        public async Task<CreateOrderResponse> CreateOrderForSingleItemAsync(int userId, int productId, int quantity, CancellationToken ct = default)
         {
-            if (userId == Guid.Empty) throw new ArgumentException("userId required");
+            if (userId <= 0) throw new ArgumentException("userId required");
             if (quantity <= 0) throw new ArgumentException("quantity must be > 0");
 
             // Fetch product
@@ -100,7 +100,7 @@ namespace urban_dukan_checkout_service.Services
 
             if (prod.Stock < quantity)
             {
-                throw new InvalidOperationException($"Product {prod.ProductId} stock insufficient");
+                throw new InvalidOperationException($"Product {prod.id} stock insufficient");
             }
 
             var order = new Order
@@ -114,8 +114,8 @@ namespace urban_dukan_checkout_service.Services
             {
                 Id = Guid.NewGuid(),
                 OrderId = order.Id,
-                ProductId = prod.ProductId,
-                ProductName = prod.Name,
+                ProductId = prod.id,
+                ProductName = prod.Title,
                 PriceAtPurchase = prod.Price,
                 Quantity = quantity
             };
@@ -136,7 +136,7 @@ namespace urban_dukan_checkout_service.Services
             return Map(o);
         }
 
-        public async Task<OrderResponse[]> GetOrdersByUserAsync(Guid userId, CancellationToken ct = default)
+        public async Task<OrderResponse[]> GetOrdersByUserAsync(int userId, CancellationToken ct = default)
         {
             var arr = await _orderRepo.GetByUserAsync(userId, ct);
             return arr.Select(Map).ToArray();

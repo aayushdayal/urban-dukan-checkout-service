@@ -12,8 +12,8 @@ using urban_dukan_checkout_service.Data;
 namespace urban_dukan_checkout_service.Migrations
 {
     [DbContext(typeof(OrdersDbContext))]
-    [Migration("20260330202328_CreateOrders")]
-    partial class CreateOrders
+    [Migration("20260331194210_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -37,8 +37,8 @@ namespace urban_dukan_checkout_service.Migrations
                     b.Property<decimal>("Total")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 

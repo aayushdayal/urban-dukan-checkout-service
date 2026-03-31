@@ -9,6 +9,6 @@ namespace urban_dukan_checkout_service.Repositories
     {
         Task<Order> CreateOrderAsync(Order order, CancellationToken ct = default);
         Task<Order?> GetByIdAsync(Guid id, CancellationToken ct = default);
-        Task<Order[]> GetByUserAsync(Guid userId, CancellationToken ct = default);
+        Task<Order[]> GetByUserAsync(int userId, CancellationToken ct = default);
     }
 }

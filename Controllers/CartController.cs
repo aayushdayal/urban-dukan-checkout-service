@@ -26,7 +26,7 @@ namespace urban_dukan_checkout_service.Controllers
         [HttpGet]
         public async Task<IActionResult> GetCart(CancellationToken ct)
         {
-            if (!TryGetUserId(out var userId) || userId == Guid.Empty) return Unauthorized();
+            if (!TryGetUserId(out var userId) || userId == 0) return Unauthorized();
             var cart = await _service.GetCartAsync(userId, ct);
             return Ok(cart);
         }
@@ -34,7 +34,7 @@ namespace urban_dukan_checkout_service.Controllers
         [HttpPost("items")]
         public async Task<IActionResult> AddItem([FromBody] AddCartItemRequest request, CancellationToken ct)
         {
-            if (!TryGetUserId(out var userId) || userId == Guid.Empty) return Unauthorized();
+            if (!TryGetUserId(out var userId) || userId == 0) return Unauthorized();
 
             // set user from token (frontend no longer provides it)
             request.UserId = userId;
@@ -55,7 +55,7 @@ namespace urban_dukan_checkout_service.Controllers
         [HttpPut("items")]
         public async Task<IActionResult> UpdateItem([FromBody] UpdateCartItemRequest request, CancellationToken ct)
         {
-            if (!TryGetUserId(out var userId) || userId == Guid.Empty) return Unauthorized();
+            if (!TryGetUserId(out var userId) || userId == 0) return Unauthorized();
 
             request.UserId = userId;
 
@@ -80,7 +80,7 @@ namespace urban_dukan_checkout_service.Controllers
         [HttpDelete("items/{productId:int}")]
         public async Task<IActionResult> DeleteItem(int productId, CancellationToken ct)
         {
-            if (!TryGetUserId(out var userId) || userId == Guid.Empty) return Unauthorized();
+            if (!TryGetUserId(out var userId) || userId == 0) return Unauthorized();
 
             await _service.RemoveItemAsync(userId, productId, ct);
             return NoContent();
@@ -89,18 +89,18 @@ namespace urban_dukan_checkout_service.Controllers
         [HttpDelete]
         public async Task<IActionResult> ClearCart(CancellationToken ct)
         {
-            if (!TryGetUserId(out var userId) || userId == Guid.Empty) return Unauthorized();
+            if (!TryGetUserId(out var userId) || userId == 0) return Unauthorized();
 
             await _service.ClearCartAsync(userId, ct);
             return NoContent();
         }
 
-        private bool TryGetUserId(out Guid userId)
+        private bool TryGetUserId(out int userId)
         {
-            userId = Guid.Empty;
+            userId = 0;
             var claim = User.FindFirst("sub") ?? User.FindFirst("user_id") ?? User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
             if (claim == null) return false;
-            return Guid.TryParse(claim.Value, out userId);
+            return int.TryParse(claim.Value, out userId);
         }
     }
 }

@@ -23,9 +23,9 @@ namespace urban_dukan_checkout_service.Repositories
             _logger = logger;
         }
 
-        private static string GetKey(Guid userId) => $"cart:{userId}";
+        private static string GetKey(int userId) => $"cart:{userId}";
 
-        public async Task<Cart?> GetCartAsync(Guid userId, CancellationToken ct = default)
+        public async Task<Cart?> GetCartAsync(int userId, CancellationToken ct = default)
         {
             var key = GetKey(userId);
             var raw = await _db.StringGetAsync(key);
@@ -49,7 +49,7 @@ namespace urban_dukan_checkout_service.Repositories
             await _db.StringSetAsync(key, json, expiry);
         }
 
-        public async Task DeleteCartAsync(Guid userId, CancellationToken ct = default)
+        public async Task DeleteCartAsync(int userId, CancellationToken ct = default)
         {
             var key = GetKey(userId);
             await _db.KeyDeleteAsync(key);
