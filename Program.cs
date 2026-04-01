@@ -135,8 +135,8 @@ using (var scope = app.Services.CreateScope())
 {
     var redis = scope.ServiceProvider.GetRequiredService<IConnectionMultiplexer>();
     Console.WriteLine($"Redis Connected: {redis.IsConnected}");
-    var db = scope.ServiceProvider.GetRequiredService<OrdersDbContext>();
-    db.Database.Migrate();
+    //var db = scope.ServiceProvider.GetRequiredService<OrdersDbContext>();
+    //db.Database.Migrate();
 }
 
 // Configure middleware
