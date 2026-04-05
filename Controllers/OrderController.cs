@@ -16,11 +16,12 @@ namespace urban_dukan_checkout_service.Controllers
     {
         private readonly IOrderService _svc;
         private readonly ILogger<OrderController> _logger;
-
-        public OrderController(IOrderService svc, ILogger<OrderController> logger)
+        private readonly ServiceBusPublisher _publisher;
+        public OrderController(IOrderService svc, ILogger<OrderController> logger, ServiceBusPublisher publisher)
         {
             _svc = svc;
             _logger = logger;
+            _publisher = publisher;
         }
 
         [HttpPost]
@@ -31,6 +32,16 @@ namespace urban_dukan_checkout_service.Controllers
             try
             {
                 var res = await _svc.CreateOrderAsync(userId, ct);
+                var orderEvent = new
+                {
+                    OrderId = res.OrderId,
+                    UserId = userId,
+                    Message = "Order placed successfully",
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                await _publisher.SendOrderPlacedEventAsync(orderEvent);
+
                 return CreatedAtAction(nameof(GetOrderById), new { id = res.OrderId }, res);
             }
             catch (InvalidOperationException ex)
@@ -55,6 +66,14 @@ namespace urban_dukan_checkout_service.Controllers
             try
             {
                 var res = await _svc.CreateOrderForSingleItemAsync(userId, request.ProductId, request.Quantity, ct);
+                var orderEvent = new
+                {
+                    OrderId = res.OrderId,
+                    UserId = userId,
+                    Message = "Order placed successfully",
+                    CreatedAt = DateTime.UtcNow
+                };
+                await _publisher.SendOrderPlacedEventAsync(orderEvent);
                 return CreatedAtAction(nameof(GetOrderById), new { id = res.OrderId }, res);
             }
             catch (InvalidOperationException ex)

@@ -87,6 +87,7 @@ builder.Services.AddHttpClient<IProductServiceClient, ProductServiceClient>((sp,
     client.BaseAddress = new Uri(settings.BaseUrl);
     client.Timeout = TimeSpan.FromSeconds(30);
 });
+builder.Services.AddSingleton<ServiceBusPublisher>();
 
 // JWT authentication
 // Add a "Jwt" section to appsettings with Key, Issuer and Audience (Key required for symmetric signing).
